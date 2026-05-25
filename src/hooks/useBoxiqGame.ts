@@ -13,6 +13,7 @@ import { Alert } from "react-native";
 import { canUndo, createSnapshot, popSnapshot, pushSnapshot } from "../game/history";
 import { buildSmartHint } from "../game/hints";
 import { cloneGrid, levels } from "../game/levels";
+import { findInstantConflicts } from "../game/live-feedback";
 import { applyDailyCompletion, getEarnedAchievements, pickDailyLevel, toDateKey } from "../game/retention";
 import { calculateStars } from "../game/scoring";
 import type {
@@ -55,6 +56,7 @@ type GameContextValue = {
   board: CellValue[][];
   fixedCells: boolean[][];
   hintedCells: Set<HintCell>;
+  invalidCells: Set<HintCell>;
   seconds: number;
   mistakes: number;
   hintsUsed: number;
@@ -99,6 +101,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
   const selectedLevel = useMemo(() => findLevel(selectedLevelId), [selectedLevelId]);
   const [board, setBoard] = useState<CellValue[][]>(() => cloneGrid(selectedLevel.grid));
   const [hintedCells, setHintedCells] = useState<Set<HintCell>>(() => new Set());
+  const [invalidCells, setInvalidCells] = useState<Set<HintCell>>(() => new Set());
   const [seconds, setSeconds] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
@@ -132,6 +135,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     (level: Level, readyMessage = t(locale, "ready")) => {
       setBoard(cloneGrid(level.grid));
       setHintedCells(new Set());
+      setInvalidCells(new Set());
       setSeconds(0);
       setMistakes(0);
       setHintsUsed(0);
@@ -225,6 +229,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     setHintsUsed(latest.hintsUsed);
     setSeconds(latest.seconds);
     setHintedCells(new Set(latest.hintedCells));
+    setInvalidCells(new Set());
     setHistory((current) => current.slice(0, -1));
     setMessage(t(locale, "undoApplied"));
     void triggerSelectionFeedback(gameSettings.hapticsEnabled);
@@ -260,8 +265,33 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
           })
         )
       );
+      if (gameSettings.instantFeedbackEnabled) {
+        const nextBoard = board.map((currentRow, rowIndex) =>
+          currentRow.map((cell, colIndex) => {
+            if (rowIndex !== row || colIndex !== col) {
+              return cell;
+            }
+
+            return ((cell + 1) % 3) as CellValue;
+          })
+        );
+        setInvalidCells(new Set(findInstantConflicts(nextBoard, selectedLevel, row, col)));
+      } else {
+        setInvalidCells(new Set());
+      }
     },
-    [board, fixedCells, gameSettings.hapticsEnabled, hintedCells, hintsUsed, mistakes, seconds, solved]
+    [
+      board,
+      fixedCells,
+      gameSettings.hapticsEnabled,
+      gameSettings.instantFeedbackEnabled,
+      hintedCells,
+      hintsUsed,
+      mistakes,
+      seconds,
+      selectedLevel,
+      solved
+    ]
   );
 
   const giveHint = useCallback(() => {
@@ -285,6 +315,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
           currentRow.map((cell, colIndex) => (rowIndex === row && colIndex === col ? value : cell))
         )
       );
+      setInvalidCells(new Set());
       setHintedCells((current) => new Set(current).add(keyForCell(row, col)));
       setHintsUsed((current) => current + 1);
       void triggerHintFeedback(gameSettings.hapticsEnabled);
@@ -314,6 +345,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
 
     const result = validateBoard(board, selectedLevel, locale, seconds);
     setMessage(result.message);
+    setInvalidCells(new Set());
 
     if (!result.valid) {
       const nextMistakes = mistakes + 1;
@@ -408,6 +440,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       board,
       fixedCells,
       hintedCells,
+      invalidCells,
       seconds,
       mistakes,
       hintsUsed,
@@ -443,6 +476,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       fixedCells,
       giveHint,
       hintedCells,
+      invalidCells,
       hintsUsed,
       loadProgress,
       message,

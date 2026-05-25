@@ -12,6 +12,7 @@ export type GameSettings = {
   soundEnabled: boolean;
   hapticsEnabled: boolean;
   timerEnabled: boolean;
+  instantFeedbackEnabled: boolean;
   mistakeLimit: MistakeLimitMode;
   colorBlindMode: boolean;
   dailyReminderEnabled: boolean;

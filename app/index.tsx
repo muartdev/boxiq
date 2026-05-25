@@ -30,6 +30,7 @@ export default function PlayScreen() {
     board,
     fixedCells,
     hintedCells,
+    invalidCells,
     seconds,
     mistakes,
     stars,
@@ -164,6 +165,7 @@ export default function PlayScreen() {
           board={board}
           fixedCells={fixedCells}
           hintedCells={hintedCells}
+          invalidCells={invalidCells}
           relations={selectedLevel.relations}
           onCellPress={(row, col) => {
             setEditablePresses((current) => current + 1);

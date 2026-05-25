@@ -23,6 +23,7 @@ export const defaultGameSettings: GameSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
   timerEnabled: true,
+  instantFeedbackEnabled: true,
   mistakeLimit: "normal",
   colorBlindMode: false,
   dailyReminderEnabled: false,

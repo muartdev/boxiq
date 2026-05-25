@@ -13,12 +13,14 @@ export function BoxiqBoard({
   board,
   fixedCells,
   hintedCells,
+  invalidCells,
   relations,
   onCellPress
 }: {
   board: CellValue[][];
   fixedCells: boolean[][];
   hintedCells: Set<string>;
+  invalidCells: Set<string>;
   relations: Relation[];
   onCellPress: (row: number, col: number) => void;
 }) {
@@ -61,6 +63,7 @@ export function BoxiqBoard({
                 value={value}
                 fixed={fixedCells[rowIndex][colIndex]}
                 hinted={hintedCells.has(`${rowIndex}-${colIndex}`)}
+                invalid={invalidCells.has(`${rowIndex}-${colIndex}`)}
                 active={activeCell === `${rowIndex}-${colIndex}`}
                 size={cellSize}
                 left={colIndex * (cellSize + GAP)}

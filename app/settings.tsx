@@ -89,6 +89,12 @@ export default function SettingsScreen() {
           value={gameSettings.timerEnabled}
           onValueChange={(value) => void updateGameSettings({ timerEnabled: value })}
         />
+        <ToggleRow
+          label={t(locale, "instantFeedback")}
+          description={t(locale, "instantFeedbackBody")}
+          value={gameSettings.instantFeedbackEnabled}
+          onValueChange={(value) => void updateGameSettings({ instantFeedbackEnabled: value })}
+        />
         <View style={styles.block}>
           <SectionHeader title={t(locale, "mistakeLimit")} />
           <SegmentedControl<MistakeLimitMode>

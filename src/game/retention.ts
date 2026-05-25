@@ -103,3 +103,34 @@ export function getEarnedAchievements(
 
   return achievements;
 }
+
+export function getUnlockedAchievements(
+  progress: Record<string, LevelProgress>,
+  dailyStats: Pick<DailyStats, "bestStreak">
+): AchievementId[] {
+  const achievements: AchievementId[] = [];
+  const entries = Object.values(progress);
+  const completed = entries.filter((entry) => entry.completed);
+
+  if (completed.length > 0) {
+    achievements.push("first-solve");
+  }
+
+  if (completed.some((entry) => entry.bestMistakes === 0 || entry.bestStars === 3)) {
+    achievements.push("flawless");
+  }
+
+  if (completed.some((entry) => typeof entry.bestTime === "number" && entry.bestTime < 60)) {
+    achievements.push("under-minute");
+  }
+
+  if (completed.some((entry) => entry.bestHintsUsed === 0 || entry.bestStars === 3)) {
+    achievements.push("no-hint");
+  }
+
+  if (dailyStats.bestStreak >= 7) {
+    achievements.push("seven-day-streak");
+  }
+
+  return achievements;
+}

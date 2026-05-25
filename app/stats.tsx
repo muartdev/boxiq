@@ -1,9 +1,11 @@
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { AchievementStrip } from "../src/components/AchievementStrip";
 import { AppShell } from "../src/components/AppShell";
 import { SectionHeader } from "../src/components/SectionHeader";
 import { StatRow } from "../src/components/StatRow";
+import { getUnlockedAchievements } from "../src/game/retention";
 import { buildStatsSummary } from "../src/game/stats";
 import { formatTime, t } from "../src/i18n/translations";
 import { useBoxiqGame } from "../src/hooks/useBoxiqGame";
@@ -14,6 +16,7 @@ export default function StatsScreen() {
   const { locale, theme } = useSettings();
   const { levels, progress, dailyStats } = useBoxiqGame();
   const stats = buildStatsSummary(levels, progress, dailyStats, undefined, locale);
+  const unlockedAchievements = getUnlockedAchievements(progress, dailyStats);
 
   return (
     <AppShell>
@@ -121,6 +124,11 @@ export default function StatsScreen() {
             />
           ))}
         </View>
+      </View>
+
+      <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
+        <SectionHeader title={t(locale, "achievements")} />
+        <AchievementStrip achievements={unlockedAchievements} />
       </View>
     </AppShell>
   );

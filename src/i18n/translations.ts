@@ -73,6 +73,8 @@ type TranslationKey =
   | "soundEffects"
   | "haptics"
   | "timer"
+  | "instantFeedback"
+  | "instantFeedbackBody"
   | "mistakeLimit"
   | "relaxed"
   | "normal"
@@ -203,6 +205,8 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     soundEffects: "Sound effects",
     haptics: "Haptics",
     timer: "Timer",
+    instantFeedback: "Instant feedback",
+    instantFeedbackBody: "Show soft warnings when a move already breaks a visible rule.",
     mistakeLimit: "Mistake limit",
     relaxed: "Relaxed",
     normal: "Normal",
@@ -332,6 +336,8 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     soundEffects: "Ses efektleri",
     haptics: "Titreşim",
     timer: "Zamanlayıcı",
+    instantFeedback: "Anlık uyarı",
+    instantFeedbackBody: "Bir hamle görünür bir kuralı bozuyorsa yumuşak uyarı göster.",
     mistakeLimit: "Hata limiti",
     relaxed: "Rahat",
     normal: "Normal",

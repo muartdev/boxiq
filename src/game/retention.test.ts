@@ -6,6 +6,7 @@ import {
   getEarnedAchievements,
   getDailyEntry,
   hasSolvedDailyToday,
+  getUnlockedAchievements,
   pickDailyLevel
 } from "./retention";
 
@@ -119,6 +120,21 @@ describe("Boxiq retention systems", () => {
     });
 
     expect(achievements).toEqual([
+      "first-solve",
+      "flawless",
+      "under-minute",
+      "no-hint",
+      "seven-day-streak"
+    ]);
+  });
+
+  it("derives unlocked achievements from stored progress and streaks", () => {
+    const progress: Record<string, LevelProgress> = {
+      first: { completed: true, bestStars: 3, bestTime: 42, bestMistakes: 0, bestHintsUsed: 0 },
+      second: { completed: true, bestStars: 2, bestTime: 80, bestMistakes: 1, bestHintsUsed: 1 }
+    };
+
+    expect(getUnlockedAchievements(progress, { bestStreak: 8 })).toEqual([
       "first-solve",
       "flawless",
       "under-minute",

@@ -8,6 +8,7 @@ export function BoxiqCell({
   value,
   fixed,
   hinted,
+  invalid,
   active,
   size,
   left,
@@ -17,6 +18,7 @@ export function BoxiqCell({
   value: CellValue;
   fixed: boolean;
   hinted: boolean;
+  invalid: boolean;
   active: boolean;
   size: number;
   left: number;
@@ -68,8 +70,16 @@ export function BoxiqCell({
           height: size,
           left,
           top,
-          borderColor: hinted || active ? theme.colors.accent : theme.colors.border,
-          backgroundColor: fixed ? theme.colors.fixedCell : active ? theme.colors.accentSoft : theme.colors.card,
+          borderColor: invalid ? theme.colors.danger : hinted || active ? theme.colors.accent : theme.colors.border,
+          backgroundColor: fixed
+            ? theme.colors.fixedCell
+            : invalid
+              ? theme.mode === "dark"
+                ? "#341A23"
+                : "#F5E4E1"
+              : active
+                ? theme.colors.accentSoft
+                : theme.colors.card,
           opacity: pressed ? 0.72 : 1
         }
       ]}
