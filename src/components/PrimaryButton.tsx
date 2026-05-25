@@ -37,13 +37,15 @@ export function PrimaryButton({
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 46,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16
   },
   label: {
-    ...Typography.buttonText
+    ...Typography.buttonText,
+    fontSize: 20,
+    lineHeight: 22
   }
 });

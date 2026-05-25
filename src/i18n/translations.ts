@@ -59,6 +59,11 @@ type TranslationKey =
   | "skip"
   | "start"
   | "watchTutorial"
+  | "firstGuide"
+  | "filledCell"
+  | "hollowCell"
+  | "sameClue"
+  | "differentClue"
   | "achievements"
   | "firstSolve"
   | "flawless"
@@ -84,6 +89,12 @@ type TranslationKey =
   | "today"
   | "todayCompleted"
   | "todayNone"
+  | "todayPrompt"
+  | "thisWeekSolved"
+  | "difficultyProgress"
+  | "mistakeLimitBodyRelaxed"
+  | "mistakeLimitBodyNormal"
+  | "mistakeLimitBodyHard"
   | "continueLevel"
   | "results"
   | "nextLevel"
@@ -136,7 +147,7 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     undo: "Undo",
     howToPlay: "How to Play",
     howToPlayBody:
-      "Fill every row and column with exactly three filled and three hollow circles. Avoid three matching symbols in a row. = clues match, × clues are opposite.",
+      "Keep each row and column balanced. Never let three matching symbols touch in a line.",
     noBest: "None",
     language: "Language",
     theme: "Theme",
@@ -178,6 +189,11 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     skip: "Skip",
     start: "Start",
     watchTutorial: "View tutorial",
+    firstGuide: "First level guide",
+    filledCell: "Filled cell",
+    hollowCell: "Hollow cell",
+    sameClue: "Must match",
+    differentClue: "Must differ",
     achievements: "Achievements",
     firstSolve: "First solve",
     flawless: "Flawless",
@@ -203,6 +219,12 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     today: "Today",
     todayCompleted: "Completed",
     todayNone: "None",
+    todayPrompt: "You have not solved a puzzle today yet. Start a calm round now.",
+    thisWeekSolved: "Solved this week",
+    difficultyProgress: "By difficulty",
+    mistakeLimitBodyRelaxed: "Relaxed: unlimited mistakes",
+    mistakeLimitBodyNormal: "Normal: 3 mistakes",
+    mistakeLimitBodyHard: "Hard: 1 mistake",
     continueLevel: "Continue",
     results: "Results",
     nextLevel: "Next level",
@@ -254,7 +276,7 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     undo: "Geri Al",
     howToPlay: "Nasıl Oynanır",
     howToPlayBody:
-      "Her satır ve sütunu tam olarak üç dolu ve üç boş halka ile doldur. Aynı sembolden üç tane yan yana gelmesin. = ipuçları aynı, × ipuçları farklı olmalı.",
+      "Her satır ve sütunda dengeyi kur. Aynı sembolden üç tane bir çizgide yan yana gelmesin.",
     noBest: "Yok",
     language: "Dil",
     theme: "Tema",
@@ -296,6 +318,11 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     skip: "Geç",
     start: "Başla",
     watchTutorial: "Tutorial'ı aç",
+    firstGuide: "İlk seviye rehberi",
+    filledCell: "Dolu hücre",
+    hollowCell: "Boş halka",
+    sameClue: "Aynı olmalı",
+    differentClue: "Farklı olmalı",
     achievements: "Başarımlar",
     firstSolve: "İlk çözüm",
     flawless: "Hatasız",
@@ -321,6 +348,12 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     today: "Bugün",
     todayCompleted: "Tamamlandı",
     todayNone: "Yok",
+    todayPrompt: "Bugün henüz bir bulmaca çözmedin. Hemen sakin bir tur başlat.",
+    thisWeekSolved: "Bu hafta çözdün",
+    difficultyProgress: "Zorluğa göre",
+    mistakeLimitBodyRelaxed: "Rahat: sınırsız hata",
+    mistakeLimitBodyNormal: "Normal: 3 hata",
+    mistakeLimitBodyHard: "Zor: 1 hata",
     continueLevel: "Devam et",
     results: "Sonuç",
     nextLevel: "Sonraki seviye",

@@ -55,7 +55,7 @@ export function SecondaryButton({
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 46,
     borderWidth: 1,
     borderRadius: 16,
     alignItems: "center",
@@ -63,6 +63,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16
   },
   label: {
-    ...Typography.buttonText
+    ...Typography.buttonText,
+    fontSize: 20,
+    lineHeight: 22
   }
 });

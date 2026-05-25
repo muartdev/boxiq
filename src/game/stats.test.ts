@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import type { DailyStats, Level, ProgressMap } from "./types";
 import { buildStatsSummary } from "./stats";
 
-const levels = [{ id: "a" }, { id: "b" }, { id: "c" }] as Level[];
+const levels = [
+  { id: "a", difficulty: { en: "Easy", tr: "Kolay" } },
+  { id: "b", difficulty: { en: "Medium", tr: "Orta" } },
+  { id: "c", difficulty: { en: "Medium", tr: "Orta" } }
+] as Level[];
 
 describe("Boxiq stats summary", () => {
   it("computes totals from solved progress and daily stats", () => {
@@ -45,6 +49,11 @@ describe("Boxiq stats summary", () => {
       currentStreak: 7,
       bestStreak: 9,
       dailyBestTime: 55,
+      activeDaysThisWeek: 2,
+      difficultyProgress: [
+        { difficulty: "Easy", completed: 1, total: 1 },
+        { difficulty: "Medium", completed: 1, total: 2 }
+      ],
       todayStatus: {
         date: "2026-05-24",
         levelId: "daily-01",

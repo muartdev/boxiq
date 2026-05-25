@@ -1,4 +1,5 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useSettings } from "../hooks/useSettings";
 import { formatTime, t } from "../i18n/translations";
@@ -23,10 +24,80 @@ export function ResultModal({
   onNextLevel: () => void;
 }) {
   const { locale, theme } = useSettings();
+  const [visibleStars, setVisibleStars] = useState(0);
+  const summaryY = useRef(new Animated.Value(14)).current;
+  const summaryOpacity = useRef(new Animated.Value(0)).current;
+  const burst = useRef(
+    Array.from({ length: 5 }, () => ({
+      x: new Animated.Value(0),
+      y: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      scale: new Animated.Value(0.6)
+    }))
+  ).current;
 
   if (!result) {
     return null;
   }
+
+  useEffect(() => {
+    setVisibleStars(0);
+    summaryY.setValue(14);
+    summaryOpacity.setValue(0);
+
+    const starTimers = Array.from({ length: result.stars }, (_, index) =>
+      setTimeout(() => setVisibleStars(index + 1), 120 + index * 160)
+    );
+
+    burst.forEach((particle, index) => {
+      particle.x.setValue(0);
+      particle.y.setValue(0);
+      particle.opacity.setValue(0);
+      particle.scale.setValue(0.6);
+
+      Animated.parallel([
+        Animated.timing(particle.opacity, {
+          toValue: 0.9,
+          duration: 160,
+          delay: 120 + index * 50,
+          useNativeDriver: true
+        }),
+        Animated.spring(particle.scale, {
+          toValue: 1,
+          delay: 120 + index * 50,
+          useNativeDriver: true,
+          friction: 6
+        }),
+        Animated.timing(particle.x, {
+          toValue: [-42, -18, 0, 18, 42][index],
+          duration: 420,
+          delay: 120 + index * 50,
+          useNativeDriver: true
+        }),
+        Animated.timing(particle.y, {
+          toValue: [-14, -24, -28, -22, -12][index],
+          duration: 420,
+          delay: 120 + index * 50,
+          useNativeDriver: true
+        })
+      ]).start(() => {
+        Animated.timing(particle.opacity, {
+          toValue: 0,
+          duration: 260,
+          useNativeDriver: true
+        }).start();
+      });
+    });
+
+    Animated.parallel([
+      Animated.timing(summaryY, { toValue: 0, duration: 320, useNativeDriver: true }),
+      Animated.timing(summaryOpacity, { toValue: 1, duration: 320, useNativeDriver: true })
+    ]).start();
+
+    return () => {
+      starTimers.forEach((timer) => clearTimeout(timer));
+    };
+  }, [burst, result, summaryOpacity, summaryY]);
 
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onClose}>
@@ -36,9 +107,38 @@ export function ResultModal({
           <Text style={[styles.title, { color: theme.colors.text }]}>
             {result.levelName} {t(locale, "completedTitleSuffix")}
           </Text>
-          <Text style={[styles.stars, { color: theme.colors.accent }]}>{Array.from({ length: result.stars }, () => "★").join("")}</Text>
+          <View style={styles.burstWrap}>
+            {burst.map((particle, index) => (
+              <Animated.View
+                key={index}
+                style={[
+                  styles.burstDot,
+                  {
+                    backgroundColor: index % 2 === 0 ? theme.colors.accent : theme.colors.accentSoft,
+                    opacity: particle.opacity,
+                    transform: [
+                      { translateX: particle.x },
+                      { translateY: particle.y },
+                      { scale: particle.scale }
+                    ]
+                  }
+                ]}
+              />
+            ))}
+          </View>
+          <Text style={[styles.stars, { color: theme.colors.accent }]}>
+            {Array.from({ length: visibleStars }, () => "★").join("")}
+          </Text>
 
-          <View style={styles.summary}>
+          <Animated.View
+            style={[
+              styles.summary,
+              {
+                opacity: summaryOpacity,
+                transform: [{ translateY: summaryY }]
+              }
+            ]}
+          >
             <Text style={[styles.summaryLine, { color: theme.colors.text }]}>{formatTime(result.seconds)}</Text>
             <Text style={[styles.summaryLine, { color: theme.colors.text }]}>
               {result.mistakes} {t(locale, "mistakes").toLowerCase()}
@@ -48,7 +148,7 @@ export function ResultModal({
                 ? t(locale, "noHintsUsed")
                 : `${result.hintsUsed} ${t(locale, "hint").toLowerCase()}`}
             </Text>
-          </View>
+          </Animated.View>
 
           {result.isNewBestTime ? (
             <Text style={[styles.badge, { color: theme.colors.accent }]}>{t(locale, "newBest")}</Text>
@@ -101,23 +201,36 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.cardTitle,
-    fontSize: 30,
-    lineHeight: 36
+    fontSize: 24,
+    lineHeight: 30
+  },
+  burstWrap: {
+    height: 0,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  burstDot: {
+    position: "absolute",
+    width: 8,
+    height: 8,
+    borderRadius: 4
   },
   stars: {
     ...Typography.sectionTitle,
-    fontSize: 24
+    fontSize: 22,
+    lineHeight: 24
   },
   summary: {
     gap: 6
   },
   summaryLine: {
     ...Typography.bodyStrong,
-    fontSize: 18
+    fontSize: 17,
+    lineHeight: 24
   },
   badge: {
     ...Typography.brandLabel,
-    fontSize: 14
+    fontSize: 13
   },
   dailyBlock: {
     borderWidth: 1,
@@ -129,7 +242,8 @@ const styles = StyleSheet.create({
     ...Typography.bodyStrong
   },
   dailyMeta: {
-    ...Typography.muted
+    ...Typography.muted,
+    fontSize: 15
   },
   actions: {
     flexDirection: "row",

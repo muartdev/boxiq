@@ -1,19 +1,20 @@
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import type { TextStyle, ViewStyle } from "react-native";
 
 import { AchievementStrip } from "../src/components/AchievementStrip";
 import { AppShell } from "../src/components/AppShell";
 import { BoxiqBoard } from "../src/components/BoxiqBoard";
-import { BoxiqLogo } from "../src/components/BoxiqLogo";
 import { CompactStatusBar } from "../src/components/CompactStatusBar";
 import { DailyCard } from "../src/components/DailyCard";
 import { HowToPlay } from "../src/components/HowToPlay";
+import { InlineCoach } from "../src/components/InlineCoach";
 import { PrimaryButton } from "../src/components/PrimaryButton";
 import { ResultModal } from "../src/components/ResultModal";
 import { SecondaryButton } from "../src/components/SecondaryButton";
 import { TutorialModal } from "../src/components/TutorialModal";
+import { INTRO_LEVEL_ID, getInlineCoachStep } from "../src/game/onboarding";
 import { formatTime, t } from "../src/i18n/translations";
 import { useBoxiqGame } from "../src/hooks/useBoxiqGame";
 import { useSettings } from "../src/hooks/useSettings";
@@ -32,6 +33,7 @@ export default function PlayScreen() {
     seconds,
     mistakes,
     stars,
+    solved,
     message,
     achievements,
     canUndo,
@@ -51,6 +53,35 @@ export default function PlayScreen() {
   const dailyLevel = levels.find((level) => level.id === dailyLevelId) ?? selectedLevel;
   const nextLevel = levels[levels.findIndex((level) => level.id === selectedLevelId) + 1];
   const boardShake = useRef(new Animated.Value(0)).current;
+  const boardScale = useRef(new Animated.Value(1)).current;
+  const [editablePresses, setEditablePresses] = useState(0);
+  const [checksUsed, setChecksUsed] = useState(0);
+  const [equalityStepSeen, setEqualityStepSeen] = useState(false);
+  const [differenceStepSeen, setDifferenceStepSeen] = useState(false);
+
+  const coachStep = useMemo(
+    () =>
+      getInlineCoachStep({
+        levelId: selectedLevelId,
+        tutorialSeen: gameSettings.tutorialSeen,
+        levelCompleted: solved || selectedProgress.completed === true,
+        editablePresses,
+        cycleAdvances: Math.max(0, editablePresses - 1),
+        checksUsed,
+        equalityStepSeen,
+        differenceStepSeen
+      }),
+    [
+      checksUsed,
+      differenceStepSeen,
+      editablePresses,
+      equalityStepSeen,
+      gameSettings.tutorialSeen,
+      selectedLevelId,
+      selectedProgress.completed,
+      solved
+    ]
+  );
 
   useEffect(() => {
     if (mistakes === 0) {
@@ -65,6 +96,20 @@ export default function PlayScreen() {
     ]).start();
   }, [boardShake, mistakes]);
 
+  useEffect(() => {
+    Animated.sequence([
+      Animated.spring(boardScale, { toValue: 1.025, useNativeDriver: true, friction: 6 }),
+      Animated.spring(boardScale, { toValue: 1, useNativeDriver: true, friction: 7 })
+    ]).start();
+  }, [boardScale, resultSummary?.levelId]);
+
+  useEffect(() => {
+    setEditablePresses(0);
+    setChecksUsed(0);
+    setEqualityStepSeen(false);
+    setDifferenceStepSeen(false);
+  }, [selectedLevelId]);
+
   async function finishTutorial() {
     await updateGameSettings({ tutorialSeen: true });
     hideTutorial();
@@ -74,7 +119,7 @@ export default function PlayScreen() {
     <AppShell>
       <View style={styles.header}>
         <View style={styles.titleBlock}>
-          <BoxiqLogo width={118} height={32} />
+          <Text style={[styles.brandLabel, { color: theme.colors.accent }]}>BOXIQ</Text>
           <Text style={[styles.title, { color: theme.colors.text }]}>{selectedLevel.names[locale]}</Text>
           <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
             {selectedLevel.difficulty[locale]} · 6x6 · {t(locale, "balance")}
@@ -97,13 +142,33 @@ export default function PlayScreen() {
 
       <CompactStatusBar bestTime={selectedProgress.bestTime} mistakes={mistakes} stars={stars} />
 
-      <Animated.View style={{ transform: [{ translateX: boardShake }] }}>
+      {coachStep ? (
+        <InlineCoach
+          step={coachStep}
+          onDismiss={() => void updateGameSettings({ tutorialSeen: true })}
+          onAdvanceClue={() => {
+            if (coachStep === "equal") {
+              setEqualityStepSeen(true);
+              return;
+            }
+
+            if (coachStep === "cross") {
+              setDifferenceStepSeen(true);
+            }
+          }}
+        />
+      ) : null}
+
+      <Animated.View style={{ transform: [{ translateX: boardShake }, { scale: boardScale }] }}>
         <BoxiqBoard
           board={board}
           fixedCells={fixedCells}
           hintedCells={hintedCells}
           relations={selectedLevel.relations}
-          onCellPress={cycleCell}
+          onCellPress={(row, col) => {
+            setEditablePresses((current) => current + 1);
+            cycleCell(row, col);
+          }}
         />
       </Animated.View>
 
@@ -114,7 +179,16 @@ export default function PlayScreen() {
 
       <View style={styles.buttonRow}>
         <SecondaryButton label={t(locale, "hint")} onPress={giveHint} />
-        <PrimaryButton label={t(locale, "check")} onPress={() => void checkSolution()} />
+        <PrimaryButton
+          label={t(locale, "check")}
+          onPress={() => {
+            setChecksUsed((current) => current + 1);
+            if (!gameSettings.tutorialSeen && selectedLevelId === INTRO_LEVEL_ID) {
+              void updateGameSettings({ tutorialSeen: true });
+            }
+            void checkSolution();
+          }}
+        />
       </View>
 
       <View
@@ -182,9 +256,12 @@ const styles = StyleSheet.create({
   titleBlock: {
     flex: 1
   },
+  brandLabel: {
+    ...Typography.brandLabel,
+    marginBottom: 2
+  },
   title: {
-    ...Typography.levelTitle,
-    fontSize: 40
+    ...Typography.levelTitle
   },
   subtitle: {
     marginTop: 4,
@@ -213,6 +290,8 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   messageText: {
-    ...Typography.body
+    ...Typography.body,
+    fontSize: 16,
+    lineHeight: 23
   }
 } satisfies Record<string, ViewStyle | TextStyle>);

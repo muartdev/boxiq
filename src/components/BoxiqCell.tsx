@@ -25,6 +25,7 @@ export function BoxiqCell({
 }) {
   const { theme } = useSettings();
   const scale = useRef(new Animated.Value(1)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
   const circleSize = size * 0.48;
 
   useEffect(() => {
@@ -42,6 +43,18 @@ export function BoxiqCell({
     ]).start();
   }, [scale, value]);
 
+  useEffect(() => {
+    if (!hinted) {
+      pulse.setValue(0);
+      return;
+    }
+
+    Animated.sequence([
+      Animated.timing(pulse, { toValue: 1, duration: 180, useNativeDriver: false }),
+      Animated.timing(pulse, { toValue: 0, duration: 600, useNativeDriver: false })
+    ]).start();
+  }, [hinted, pulse]);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -56,41 +69,48 @@ export function BoxiqCell({
           left,
           top,
           borderColor: hinted || active ? theme.colors.accent : theme.colors.border,
-          backgroundColor: fixed ? theme.colors.fixedCell : theme.colors.card,
+          backgroundColor: fixed ? theme.colors.fixedCell : active ? theme.colors.accentSoft : theme.colors.card,
           opacity: pressed ? 0.72 : 1
         }
       ]}
     >
-      {value === 0 ? (
-        <View
-          style={[
-            styles.emptyDot,
-            {
-              width: circleSize * 0.22,
-              height: circleSize * 0.22,
-              borderRadius: circleSize * 0.11,
-              backgroundColor: theme.colors.emptyDot
-            }
-          ]}
-        />
-      ) : (
-        <Animated.View
-          style={[
-            styles.symbol,
-            {
-              width: circleSize,
-              height: circleSize,
-              borderRadius: circleSize / 2,
-              borderColor: theme.colors.accent,
-              borderWidth: value === 2 ? Math.max(3, size * 0.07) : 0,
-              backgroundColor: value === 1 ? theme.colors.accent : "transparent",
-              transform: [{ scale }]
-            }
-          ]}
-        >
-          {value === 1 ? <View style={[styles.innerMark, { backgroundColor: theme.colors.card }]} /> : null}
-        </Animated.View>
-      )}
+      <Animated.View
+        style={{
+          transform: [
+            { scale: Animated.add(scale, pulse.interpolate({ inputRange: [0, 1], outputRange: [0, 0.08] })) }
+          ]
+        }}
+      >
+        {value === 0 ? (
+          <View
+            style={[
+              styles.emptyDot,
+              {
+                width: circleSize * 0.22,
+                height: circleSize * 0.22,
+                borderRadius: circleSize * 0.11,
+                backgroundColor: theme.colors.emptyDot
+              }
+            ]}
+          />
+        ) : (
+          <Animated.View
+            style={[
+              styles.symbol,
+              {
+                width: circleSize,
+                height: circleSize,
+                borderRadius: circleSize / 2,
+                borderColor: theme.colors.accent,
+                borderWidth: value === 2 ? Math.max(3, size * 0.07) : 0,
+                backgroundColor: value === 1 ? theme.colors.accent : "transparent"
+              }
+            ]}
+          >
+            {value === 1 ? <View style={[styles.innerMark, { backgroundColor: theme.colors.card }]} /> : null}
+          </Animated.View>
+        )}
+      </Animated.View>
     </Pressable>
   );
 }

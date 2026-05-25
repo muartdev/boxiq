@@ -57,7 +57,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setLocaleState(savedLocale);
         setThemeModeState(savedTheme);
         setGameSettingsState(savedGameSettings);
-        setTutorialVisible(!savedGameSettings.tutorialSeen);
+        setTutorialVisible(false);
         setLoading(false);
       }
     }

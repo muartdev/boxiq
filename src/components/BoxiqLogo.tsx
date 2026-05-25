@@ -1,6 +1,6 @@
 import { Image, StyleSheet, View } from "react-native";
 
-const LOGO_ASSET = require("../../assets/logo.png");
+const LOGO_ASSET = require("../../assets/logo-transparent.png");
 
 export function BoxiqLogo({
   width = 124,
@@ -30,9 +30,11 @@ export function BoxiqLogo({
 
 const styles = StyleSheet.create({
   frame: {
-    overflow: "hidden"
+    overflow: "hidden",
+    backgroundColor: "transparent"
   },
   image: {
-    flexShrink: 0
+    flexShrink: 0,
+    backgroundColor: "transparent"
   }
 });

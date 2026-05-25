@@ -1,5 +1,5 @@
 import { getDailyEntry } from "./retention";
-import type { DailyStats, Level, ProgressMap, StatsSummary } from "./types";
+import type { DailyStats, Level, Locale, ProgressMap, StatsSummary } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -16,13 +16,39 @@ export function buildStatsSummary(
   levels: Level[],
   progress: ProgressMap,
   dailyStats: DailyStats,
-  todayKey = todayKeyFallback()
+  todayKey = todayKeyFallback(),
+  locale: Locale = "en"
 ): StatsSummary {
   const entries = Object.values(progress);
   const completed = entries.filter((entry) => entry.completed);
   const bestTimes = completed
     .map((entry) => entry.bestTime)
     .filter((time): time is number => typeof time === "number");
+  const difficultyProgress = Array.from(
+    levels.reduce<Map<string, { completed: number; total: number }>>((accumulator, level) => {
+      const key = level.difficulty?.[locale] ?? level.difficulty?.en ?? "Unknown";
+      const current = accumulator.get(key) ?? { completed: 0, total: 0 };
+      current.total += 1;
+      if (progress[level.id]?.completed) {
+        current.completed += 1;
+      }
+      accumulator.set(key, current);
+      return accumulator;
+    }, new Map())
+  ).map(([difficulty, value]) => ({
+    difficulty,
+    completed: value.completed,
+    total: value.total
+  }));
+
+  const lastSevenDays = Array.from({ length: 7 }, (_, index) => {
+    const date = shiftDateKey(todayKey, index - 6);
+    const entry = getDailyEntry(dailyStats, date);
+
+    return entry
+      ? { date, completed: true, stars: entry.stars }
+      : { date, completed: false };
+  });
 
   return {
     completedLevels: completed.length,
@@ -36,14 +62,9 @@ export function buildStatsSummary(
     currentStreak: dailyStats.currentStreak,
     bestStreak: dailyStats.bestStreak,
     dailyBestTime: dailyStats.dailyBestTime,
+    activeDaysThisWeek: lastSevenDays.filter((day) => day.completed).length,
+    difficultyProgress,
     todayStatus: getDailyEntry(dailyStats, todayKey),
-    lastSevenDays: Array.from({ length: 7 }, (_, index) => {
-      const date = shiftDateKey(todayKey, index - 6);
-      const entry = getDailyEntry(dailyStats, date);
-
-      return entry
-        ? { date, completed: true, stars: entry.stars }
-        : { date, completed: false };
-    })
+    lastSevenDays
   };
 }

@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 import { AppShell } from "../src/components/AppShell";
-import { BoxiqLogo } from "../src/components/BoxiqLogo";
 import { DailyCard } from "../src/components/DailyCard";
 import { LevelCard } from "../src/components/LevelCard";
 import { useBoxiqGame } from "../src/hooks/useBoxiqGame";
@@ -56,9 +55,6 @@ export default function LevelsScreen() {
     <AppShell>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.colors.text }]}>{t(locale, "chooseLevel")}</Text>
-        <View style={styles.logoRow}>
-          <BoxiqLogo width={112} height={30} />
-        </View>
       </View>
 
       <DailyCard
@@ -72,9 +68,18 @@ export default function LevelsScreen() {
         }}
       />
 
-      {groups.map((group) => (
+      {groups.map((group) => {
+        const groupLevels = levels.filter((level) => level.chapter[locale] === group);
+        const completedCount = groupLevels.filter((level) => progress[level.id]?.completed).length;
+
+        return (
         <View key={group} style={[styles.group, { borderTopColor: theme.colors.border }]}>
-          <Text style={[styles.groupTitle, { color: theme.colors.accent }]}>{group}</Text>
+          <View style={styles.groupHeader}>
+            <Text style={[styles.groupTitle, { color: theme.colors.accent }]}>{group}</Text>
+            <Text style={[styles.groupMeta, { color: theme.colors.muted }]}>
+              {completedCount}/{groupLevels.length}
+            </Text>
+          </View>
           <Text style={[styles.groupBody, { color: theme.colors.muted }]}>
             {chapterDescriptions[group]?.[locale] ?? chapterDescriptions[group]?.en ?? ""}
           </Text>
@@ -96,7 +101,7 @@ export default function LevelsScreen() {
               />
             ))}
         </View>
-      ))}
+      )})}
     </AppShell>
   );
 }
@@ -106,24 +111,30 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   title: {
-    ...Typography.screenTitle,
-    fontSize: 44,
-    lineHeight: 48
-  },
-  logoRow: {
-    marginTop: 6
+    ...Typography.screenTitle
   },
   group: {
     gap: 10,
     borderTopWidth: 1,
     paddingTop: 16
   },
+  groupHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12
+  },
   groupTitle: {
     ...Typography.brandLabel,
     marginTop: 4
   },
+  groupMeta: {
+    ...Typography.muted,
+    fontSize: 14
+  },
   groupBody: {
     ...Typography.muted,
+    fontSize: 15,
     marginTop: -2
   }
 });

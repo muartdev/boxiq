@@ -102,25 +102,28 @@ const styles = StyleSheet.create({
     marginBottom: 3
   },
   title: {
-    ...Typography.sectionTitle
+    ...Typography.sectionTitle,
+    fontSize: 18
   },
   compactTitle: {
-    ...Typography.bodyStrong
+    ...Typography.bodyStrong,
+    fontSize: 16
   },
   streakBox: {
     alignItems: "flex-end"
   },
   streak: {
     ...Typography.cardTitle,
-    fontSize: 24
+    fontSize: 24,
+    lineHeight: 28
   },
   compactStreak: {
     ...Typography.bodyStrong,
-    fontSize: 18
+    fontSize: 17
   },
   meta: {
     ...Typography.muted,
-    fontSize: 14
+    fontSize: 15
   },
   dailyFooter: {
     gap: 2

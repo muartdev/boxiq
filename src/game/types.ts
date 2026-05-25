@@ -111,6 +111,12 @@ export type StatsSummary = {
   bestStreak: number;
   dailyBestTime?: number;
   todayStatus?: DailyHistoryEntry;
+  activeDaysThisWeek: number;
+  difficultyProgress: Array<{
+    difficulty: string;
+    completed: number;
+    total: number;
+  }>;
   lastSevenDays: Array<{
     date: string;
     completed: boolean;

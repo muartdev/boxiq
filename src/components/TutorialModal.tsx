@@ -4,6 +4,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSettings } from "../hooks/useSettings";
 import { t } from "../i18n/translations";
 import { Typography } from "../theme/typography";
+import { ClueMiniPreview } from "./ClueMiniPreview";
 import { PrimaryButton } from "./PrimaryButton";
 import { SecondaryButton } from "./SecondaryButton";
 
@@ -33,13 +34,25 @@ function StepPreview({ step }: { step: number }) {
     );
   }
 
+  if (step === 1) {
+    return <ClueMiniPreview relation="=" left="filled" right="filled" />;
+  }
+
+  if (step === 2) {
+    return <ClueMiniPreview relation="×" left="filled" right="hollow" />;
+  }
+
   return (
     <View style={styles.cluePreview}>
-      <View style={[styles.clueCell, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]} />
-      <View style={[styles.clueBadge, { borderColor: theme.colors.border, backgroundColor: theme.colors.cardStrong }]}>
-        <Text style={[styles.clueText, { color: theme.colors.accent }]}>{step === 1 ? "=" : step === 2 ? "×" : "✓"}</Text>
+      <View style={[styles.clueCell, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}>
+        <View style={[styles.clueDot, { backgroundColor: theme.colors.accent }]} />
       </View>
-      <View style={[styles.clueCell, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]} />
+      <View style={[styles.clueBadge, { borderColor: theme.colors.border, backgroundColor: theme.colors.cardStrong }]}>
+        <Text style={[styles.clueText, { color: theme.colors.accent }]}>✓</Text>
+      </View>
+      <View style={[styles.clueCell, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}>
+        <View style={[styles.clueRing, { borderColor: theme.colors.accent }]} />
+      </View>
     </View>
   );
 }
@@ -161,7 +174,9 @@ const styles = StyleSheet.create({
     ...Typography.cardTitle
   },
   body: {
-    ...Typography.body
+    ...Typography.body,
+    fontSize: 16,
+    lineHeight: 23
   },
   dots: {
     flexDirection: "row",
@@ -229,6 +244,17 @@ const styles = StyleSheet.create({
     ...Typography.sectionTitle,
     fontSize: 16,
     lineHeight: 18
+  },
+  clueDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9
+  },
+  clueRing: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2
   },
   skipLink: {
     alignSelf: "center"

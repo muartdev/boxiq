@@ -11,6 +11,7 @@ import {
 import { Alert } from "react-native";
 
 import { canUndo, createSnapshot, popSnapshot, pushSnapshot } from "../game/history";
+import { buildSmartHint } from "../game/hints";
 import { cloneGrid, levels } from "../game/levels";
 import { applyDailyCompletion, getEarnedAchievements, pickDailyLevel, toDateKey } from "../game/retention";
 import { calculateStars } from "../game/scoring";
@@ -269,29 +270,26 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    for (let row = 0; row < selectedLevel.solution.length; row += 1) {
-      for (let col = 0; col < selectedLevel.solution[row].length; col += 1) {
-        if (!fixedCells[row][col] && board[row][col] !== selectedLevel.solution[row][col]) {
-          setHistory((current) =>
-            pushSnapshot(
-              current,
-              createSnapshot(board, mistakes, hintsUsed, Array.from(hintedCells), seconds)
-            )
-          );
-          setBoard((currentBoard) =>
-            currentBoard.map((currentRow, rowIndex) =>
-              currentRow.map((cell, colIndex) =>
-                rowIndex === row && colIndex === col ? selectedLevel.solution[row][col] : cell
-              )
-            )
-          );
-          setHintedCells((current) => new Set(current).add(keyForCell(row, col)));
-          setHintsUsed((value) => value + 1);
-          void triggerHintFeedback(gameSettings.hapticsEnabled);
-          setMessage(t(locale, "hintApplied"));
-          return;
-        }
-      }
+    const smartHint = buildSmartHint(board, selectedLevel, fixedCells, locale);
+
+    if (smartHint) {
+      const { row, col, value, message: hintMessage } = smartHint;
+      setHistory((current) =>
+        pushSnapshot(
+          current,
+          createSnapshot(board, mistakes, hintsUsed, Array.from(hintedCells), seconds)
+        )
+      );
+      setBoard((currentBoard) =>
+        currentBoard.map((currentRow, rowIndex) =>
+          currentRow.map((cell, colIndex) => (rowIndex === row && colIndex === col ? value : cell))
+        )
+      );
+      setHintedCells((current) => new Set(current).add(keyForCell(row, col)));
+      setHintsUsed((current) => current + 1);
+      void triggerHintFeedback(gameSettings.hapticsEnabled);
+      setMessage(hintMessage);
+      return;
     }
 
     setMessage(t(locale, "noHintsLeft"));

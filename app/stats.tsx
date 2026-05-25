@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppShell } from "../src/components/AppShell";
-import { BoxiqLogo } from "../src/components/BoxiqLogo";
 import { SectionHeader } from "../src/components/SectionHeader";
 import { StatRow } from "../src/components/StatRow";
 import { buildStatsSummary } from "../src/game/stats";
@@ -13,12 +13,11 @@ import { Typography } from "../src/theme/typography";
 export default function StatsScreen() {
   const { locale, theme } = useSettings();
   const { levels, progress, dailyStats } = useBoxiqGame();
-  const stats = buildStatsSummary(levels, progress, dailyStats);
+  const stats = buildStatsSummary(levels, progress, dailyStats, undefined, locale);
 
   return (
     <AppShell>
       <View style={styles.header}>
-        <BoxiqLogo width={118} height={32} />
         <Text style={[styles.title, { color: theme.colors.text }]}>{t(locale, "stats")}</Text>
         <Text style={[styles.subtitle, { color: theme.colors.muted }]}>
           {t(locale, "dailyBoxiq")} · {stats.currentStreak} {t(locale, "dailyStreak").toLowerCase()}
@@ -49,11 +48,27 @@ export default function StatsScreen() {
 
       <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
         <SectionHeader title={t(locale, "today")} />
-        <Text style={[styles.sectionBody, { color: theme.colors.text }]}>
-          {stats.todayStatus
-            ? `${t(locale, "todayCompleted")} · ${formatTime(stats.todayStatus.seconds)} · ${stats.todayStatus.mistakes} ${t(locale, "mistakes").toLowerCase()} · ${"★".repeat(stats.todayStatus.stars)}`
-            : `${t(locale, "todayNone")}`}
-        </Text>
+        {stats.todayStatus ? (
+          <Text style={[styles.sectionBody, { color: theme.colors.text }]}>
+            {`${t(locale, "todayCompleted")} · ${formatTime(stats.todayStatus.seconds)} · ${stats.todayStatus.mistakes} ${t(
+              locale,
+              "mistakes"
+            ).toLowerCase()} · ${"★".repeat(stats.todayStatus.stars)}`}
+          </Text>
+        ) : (
+          <View style={styles.todayEmpty}>
+            <Text style={[styles.sectionBody, { color: theme.colors.text }]}>{t(locale, "todayPrompt")}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/")}
+              style={[styles.todayAction, { borderColor: theme.colors.border, backgroundColor: theme.colors.card }]}
+            >
+              <Text style={[styles.todayActionText, { color: theme.colors.accent }]}>
+                {t(locale, "play")} →
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
@@ -74,6 +89,9 @@ export default function StatsScreen() {
 
       <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
         <SectionHeader title={t(locale, "lastSevenDays")} />
+        <Text style={[styles.weekBody, { color: theme.colors.muted }]}>
+          {t(locale, "thisWeekSolved")}: {stats.activeDaysThisWeek}/7
+        </Text>
         <View style={styles.heatmapRow}>
           {stats.lastSevenDays.map((day) => (
             <View key={day.date} style={styles.heatmapColumn}>
@@ -91,6 +109,19 @@ export default function StatsScreen() {
           ))}
         </View>
       </View>
+
+      <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
+        <SectionHeader title={t(locale, "difficultyProgress")} />
+        <View style={styles.statList}>
+          {stats.difficultyProgress.map((item) => (
+            <StatRow
+              key={item.difficulty}
+              label={item.difficulty}
+              value={`${item.completed}/${item.total}`}
+            />
+          ))}
+        </View>
+      </View>
     </AppShell>
   );
 }
@@ -100,9 +131,7 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   title: {
-    ...Typography.screenTitle,
-    fontSize: 44,
-    lineHeight: 48
+    ...Typography.screenTitle
   },
   subtitle: {
     marginTop: 4,
@@ -116,7 +145,7 @@ const styles = StyleSheet.create({
     gap: 4
   },
   heroValue: {
-    ...Typography.screenTitle
+    ...Typography.statBig
   },
   heroLabel: {
     ...Typography.brandLabel
@@ -132,7 +161,8 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     ...Typography.sectionTitle,
-    fontSize: 26
+    fontSize: 24,
+    lineHeight: 28
   },
   metricLabel: {
     ...Typography.brandLabel,
@@ -144,10 +174,29 @@ const styles = StyleSheet.create({
     gap: 10
   },
   sectionBody: {
-    ...Typography.bodyStrong
+    ...Typography.bodyStrong,
+    fontSize: 16
+  },
+  todayEmpty: {
+    gap: 10,
+    alignItems: "flex-start"
+  },
+  todayAction: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8
+  },
+  todayActionText: {
+    ...Typography.bodyStrong,
+    fontSize: 15
   },
   statList: {
     gap: 14
+  },
+  weekBody: {
+    ...Typography.muted,
+    fontSize: 15
   },
   heatmapRow: {
     flexDirection: "row",

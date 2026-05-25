@@ -63,6 +63,11 @@ export function LevelCard({
             </Text>
             <View style={styles.badgeRow}>
               {isDaily ? <Text style={[styles.complete, { color: theme.colors.accent }]}>{t(locale, "today")}</Text> : null}
+              {progress?.completed && progress.bestHintsUsed === 0 ? (
+                <Text style={[styles.complete, { color: theme.colors.accent }]}>
+                  {t(locale, "hintless")}
+                </Text>
+              ) : null}
               {progress?.completed ? (
                 <Text style={[styles.complete, { color: theme.colors.accent }]}>✓ {t(locale, "completed")}</Text>
               ) : selected ? (
@@ -110,14 +115,15 @@ const styles = StyleSheet.create({
   },
   meta: {
     ...Typography.muted,
-    fontSize: 14
+    fontSize: 15
   },
   name: {
-    ...Typography.sectionTitle
+    ...Typography.sectionTitle,
+    fontSize: 18
   },
   detail: {
     ...Typography.muted,
-    fontSize: 14
+    fontSize: 15
   },
   bottomRow: {
     flexDirection: "row",
@@ -133,6 +139,6 @@ const styles = StyleSheet.create({
   },
   complete: {
     ...Typography.bodyStrong,
-    fontSize: 14
+    fontSize: 15
   }
 });

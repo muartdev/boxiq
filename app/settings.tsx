@@ -1,7 +1,6 @@
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppShell } from "../src/components/AppShell";
-import { BoxiqLogo } from "../src/components/BoxiqLogo";
 import { SectionHeader } from "../src/components/SectionHeader";
 import { SegmentedControl } from "../src/components/SegmentedControl";
 import { SecondaryButton } from "../src/components/SecondaryButton";
@@ -51,9 +50,6 @@ export default function SettingsScreen() {
     <AppShell>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.colors.text }]}>{t(locale, "settings")}</Text>
-        <View style={styles.logoRow}>
-          <BoxiqLogo width={112} height={30} />
-        </View>
       </View>
 
       <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
@@ -104,6 +100,13 @@ export default function SettingsScreen() {
             value={gameSettings.mistakeLimit}
             onChange={(value) => void updateGameSettings({ mistakeLimit: value })}
           />
+          <Text style={[styles.helper, { color: theme.colors.muted }]}>
+            {gameSettings.mistakeLimit === "relaxed"
+              ? t(locale, "mistakeLimitBodyRelaxed")
+              : gameSettings.mistakeLimit === "normal"
+                ? t(locale, "mistakeLimitBodyNormal")
+                : t(locale, "mistakeLimitBodyHard")}
+          </Text>
         </View>
       </View>
 
@@ -158,12 +161,7 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   title: {
-    ...Typography.screenTitle,
-    fontSize: 44,
-    lineHeight: 48
-  },
-  logoRow: {
-    marginTop: 6
+    ...Typography.screenTitle
   },
   section: {
     borderTopWidth: 1,
@@ -172,6 +170,10 @@ const styles = StyleSheet.create({
   },
   block: {
     gap: 10
+  },
+  helper: {
+    ...Typography.muted,
+    fontSize: 14
   },
   row: {
     flexDirection: "row"
