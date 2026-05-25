@@ -55,6 +55,65 @@ function columnBalanceMessage(locale: Locale, col: number, value: CellValue): st
     : `This square should be ${symbol}. Column ${col + 1} still needs that symbol for balance.`;
 }
 
+function buildHintForCoordinates(
+  board: CellValue[][],
+  level: Level,
+  fixedCells: boolean[][],
+  locale: Locale,
+  row: number,
+  col: number
+): SmartHint | undefined {
+  if (fixedCells[row][col] || board[row][col] === level.solution[row][col]) {
+    return undefined;
+  }
+
+  const value = level.solution[row][col];
+  const rowNeed = 3 - board[row].filter((entry) => entry === value).length;
+  const columnNeed = 3 - board.map((line) => line[col]).filter((entry) => entry === value).length;
+  const related = level.relations.find(
+    (relation) =>
+      (relation.r1 === row && relation.c1 === col) || (relation.r2 === row && relation.c2 === col)
+  );
+
+  if (related) {
+    return {
+      row,
+      col,
+      value,
+      message: relationMessage(locale, value, related.type, row, col, rowNeed, columnNeed)
+    };
+  }
+
+  const rowValues = board[row];
+  const rowCount = rowValues.filter((entry) => entry === value).length;
+  if (rowCount < 3) {
+    return {
+      row,
+      col,
+      value,
+      message: rowBalanceMessage(locale, row, value)
+    };
+  }
+
+  return {
+    row,
+    col,
+    value,
+    message: columnBalanceMessage(locale, col, value)
+  };
+}
+
+export function buildSmartHintForCell(
+  board: CellValue[][],
+  level: Level,
+  fixedCells: boolean[][],
+  locale: Locale,
+  row: number,
+  col: number
+): SmartHint | undefined {
+  return buildHintForCoordinates(board, level, fixedCells, locale, row, col);
+}
+
 export function buildSmartHint(
   board: CellValue[][],
   level: Level,
@@ -63,44 +122,10 @@ export function buildSmartHint(
 ): SmartHint | undefined {
   for (let row = 0; row < level.solution.length; row += 1) {
     for (let col = 0; col < level.solution[row].length; col += 1) {
-      if (fixedCells[row][col] || board[row][col] === level.solution[row][col]) {
-        continue;
+      const hint = buildHintForCoordinates(board, level, fixedCells, locale, row, col);
+      if (hint) {
+        return hint;
       }
-
-      const value = level.solution[row][col];
-      const rowNeed = 3 - board[row].filter((entry) => entry === value).length;
-      const columnNeed = 3 - board.map((line) => line[col]).filter((entry) => entry === value).length;
-      const related = level.relations.find(
-        (relation) =>
-          (relation.r1 === row && relation.c1 === col) || (relation.r2 === row && relation.c2 === col)
-      );
-
-      if (related) {
-        return {
-          row,
-          col,
-          value,
-          message: relationMessage(locale, value, related.type, row, col, rowNeed, columnNeed)
-        };
-      }
-
-      const rowValues = board[row];
-      const rowCount = rowValues.filter((entry) => entry === value).length;
-      if (rowCount < 3) {
-        return {
-          row,
-          col,
-          value,
-          message: rowBalanceMessage(locale, row, value)
-        };
-      }
-
-      return {
-        row,
-        col,
-        value,
-        message: columnBalanceMessage(locale, col, value)
-      };
     }
   }
 

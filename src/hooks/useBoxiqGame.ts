@@ -11,13 +11,14 @@ import {
 import { Alert } from "react-native";
 
 import { canUndo, createSnapshot, popSnapshot, pushSnapshot } from "../game/history";
-import { buildSmartHint } from "../game/hints";
+import { buildSmartHintForCell } from "../game/hints";
 import { cloneGrid, levels } from "../game/levels";
 import { findInstantConflicts } from "../game/live-feedback";
 import { getEarnedAchievements, pickDailyLevel } from "../game/retention";
 import type {
   AchievementId,
   CellValue,
+  CellKey,
   DailyStats,
   Level,
   LevelProgress,
@@ -45,7 +46,7 @@ import {
 } from "../lib/feedback";
 import { useSettings } from "./useSettings";
 
-type HintCell = `${number}-${number}`;
+type HintCell = CellKey;
 
 type GameContextValue = {
   levels: Level[];
@@ -55,6 +56,7 @@ type GameContextValue = {
   fixedCells: boolean[][];
   hintedCells: Set<HintCell>;
   invalidCells: Set<HintCell>;
+  selectedCell?: HintCell;
   seconds: number;
   mistakes: number;
   hintsUsed: number;
@@ -73,6 +75,7 @@ type GameContextValue = {
   replayLevel: () => void;
   undoMove: () => void;
   dismissResult: () => void;
+  selectCell: (row: number, col: number) => void;
   cycleCell: (row: number, col: number) => void;
   giveHint: () => void;
   checkSolution: () => Promise<void>;
@@ -131,6 +134,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
   const [board, setBoard] = useState<CellValue[][]>(() => cloneGrid(selectedLevel.grid));
   const [hintedCells, setHintedCells] = useState<Set<HintCell>>(() => new Set());
   const [invalidCells, setInvalidCells] = useState<Set<HintCell>>(() => new Set());
+  const [selectedCell, setSelectedCell] = useState<HintCell | undefined>();
   const [seconds, setSeconds] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
@@ -164,6 +168,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       setBoard(cloneGrid(level.grid));
       setHintedCells(new Set());
       setInvalidCells(new Set());
+      setSelectedCell(undefined);
       setSeconds(0);
       setMistakes(0);
       setHintsUsed(0);
@@ -268,12 +273,24 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     setResultSummary(undefined);
   }, []);
 
+  const selectCell = useCallback(
+    (row: number, col: number) => {
+      if (solved || fixedCells[row][col]) {
+        return;
+      }
+
+      setSelectedCell(keyForCell(row, col));
+    },
+    [fixedCells, solved]
+  );
+
   const cycleCell = useCallback(
     (row: number, col: number) => {
       if (solved || fixedCells[row][col]) {
         return;
       }
 
+      setSelectedCell(keyForCell(row, col));
       void triggerSelectionFeedback(gameSettings.hapticsEnabled);
 
       setHistory((current) =>
@@ -329,10 +346,24 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const smartHint = buildSmartHint(board, selectedLevel, fixedCells, locale);
+    if (!selectedCell) {
+      setMessage(t(locale, "selectHintTarget"));
+      return;
+    }
+
+    const [rowText, colText] = selectedCell.split("-");
+    const row = Number(rowText);
+    const col = Number(colText);
+
+    if (!Number.isInteger(row) || !Number.isInteger(col) || fixedCells[row]?.[col]) {
+      setMessage(t(locale, "selectHintTarget"));
+      return;
+    }
+
+    const smartHint = buildSmartHintForCell(board, selectedLevel, fixedCells, locale, row, col);
 
     if (smartHint) {
-      const { row, col, value, message: hintMessage } = smartHint;
+      const { value, message: hintMessage } = smartHint;
       setHistory((current) =>
         pushSnapshot(
           current,
@@ -352,7 +383,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setMessage(t(locale, "noHintsLeft"));
+    setMessage(t(locale, "selectedCellAlreadyCorrect"));
   }, [
     board,
     fixedCells,
@@ -361,6 +392,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     hintsUsed,
     locale,
     mistakes,
+    selectedCell,
     seconds,
     selectedLevel,
     solved
@@ -516,6 +548,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       fixedCells,
       hintedCells,
       invalidCells,
+      selectedCell,
       seconds,
       mistakes,
       hintsUsed,
@@ -534,6 +567,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       replayLevel,
       undoMove,
       dismissResult,
+      selectCell,
       cycleCell,
       giveHint,
       checkSolution,
@@ -560,6 +594,8 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       resultSummary,
       resetLevel,
       replayLevel,
+      selectCell,
+      selectedCell,
       seconds,
       selectLevel,
       selectedLevel,

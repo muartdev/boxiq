@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 
-import type { CellValue, Relation } from "../game/types";
+import type { CellKey, CellValue, Relation } from "../game/types";
 import { useSettings } from "../hooks/useSettings";
 import { BoxiqCell } from "./BoxiqCell";
 import { RelationBadge } from "./RelationBadge";
@@ -14,6 +14,7 @@ export function BoxiqBoard({
   fixedCells,
   hintedCells,
   invalidCells,
+  selectedCell,
   relations,
   onCellPress
 }: {
@@ -21,12 +22,12 @@ export function BoxiqBoard({
   fixedCells: boolean[][];
   hintedCells: Set<string>;
   invalidCells: Set<string>;
+  selectedCell?: CellKey;
   relations: Relation[];
   onCellPress: (row: number, col: number) => void;
 }) {
   const { theme } = useSettings();
   const [boardSize, setBoardSize] = useState(0);
-  const [activeCell, setActiveCell] = useState<string | undefined>();
   const cellSize = boardSize > 0 ? (boardSize - GAP * (BOARD_DIMENSION - 1)) / BOARD_DIMENSION : 0;
   const badgeSize = Math.max(22, Math.min(30, cellSize * 0.4));
 
@@ -64,14 +65,11 @@ export function BoxiqBoard({
                 fixed={fixedCells[rowIndex][colIndex]}
                 hinted={hintedCells.has(`${rowIndex}-${colIndex}`)}
                 invalid={invalidCells.has(`${rowIndex}-${colIndex}`)}
-                active={activeCell === `${rowIndex}-${colIndex}`}
+                active={selectedCell === `${rowIndex}-${colIndex}`}
                 size={cellSize}
                 left={colIndex * (cellSize + GAP)}
                 top={rowIndex * (cellSize + GAP)}
-                onPress={() => {
-                  setActiveCell(`${rowIndex}-${colIndex}`);
-                  onCellPress(rowIndex, colIndex);
-                }}
+                onPress={() => onCellPress(rowIndex, colIndex)}
               />
             ))
           )}

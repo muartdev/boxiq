@@ -32,6 +32,7 @@ export default function PlayScreen() {
     fixedCells,
     hintedCells,
     invalidCells,
+    selectedCell,
     seconds,
     mistakes,
     stars,
@@ -49,6 +50,7 @@ export default function PlayScreen() {
     replayLevel,
     undoMove,
     dismissResult,
+    selectCell,
     giveHint,
     checkSolution
   } = useBoxiqGame();
@@ -167,8 +169,10 @@ export default function PlayScreen() {
           fixedCells={fixedCells}
           hintedCells={hintedCells}
           invalidCells={invalidCells}
+          selectedCell={selectedCell}
           relations={selectedLevel.relations}
           onCellPress={(row, col) => {
+            selectCell(row, col);
             setEditablePresses((current) => current + 1);
             cycleCell(row, col);
           }}

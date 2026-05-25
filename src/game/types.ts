@@ -124,3 +124,5 @@ export type StatsSummary = {
     stars?: number;
   }>;
 };
+
+export type CellKey = `${number}-${number}`;

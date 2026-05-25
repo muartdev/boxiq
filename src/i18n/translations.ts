@@ -35,6 +35,8 @@ type TranslationKey =
   | "hintApplied"
   | "alreadySolved"
   | "noHintsLeft"
+  | "selectHintTarget"
+  | "selectedCellAlreadyCorrect"
   | "tryAgain"
   | "boardReset"
   | "dailyBoxiq"
@@ -174,6 +176,8 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     hintApplied: "Hint placed. One square now matches the solution.",
     alreadySolved: "This level is already solved.",
     noHintsLeft: "No hint needed. Every editable square already matches.",
+    selectHintTarget: "Select a square first, then ask for a hint there.",
+    selectedCellAlreadyCorrect: "That square already looks right. Pick another one for a hint.",
     tryAgain: "Not yet. Check the highlighted rules and try again.",
     boardReset: "Board reset. Fresh eyes, fresh start.",
     dailyBoxiq: "Today's Boxiq",
@@ -312,6 +316,8 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     hintApplied: "İpucu yerleştirildi. Bir kutu artık çözümle eşleşiyor.",
     alreadySolved: "Bu seviye zaten çözüldü.",
     noHintsLeft: "İpucuna gerek yok. Tüm değişebilir kutular doğru.",
+    selectHintTarget: "Önce bir kutu seç, sonra ipucunu o kare için iste.",
+    selectedCellAlreadyCorrect: "Bu kutu zaten doğru görünüyor. İpucu için başka bir kare seç.",
     tryAgain: "Henüz değil. Kuralları kontrol edip tekrar dene.",
     boardReset: "Tahta sıfırlandı. Temiz bir başlangıç.",
     dailyBoxiq: "Günün Boxiq'i",
