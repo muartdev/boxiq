@@ -22,35 +22,35 @@ export const themes: Record<ThemeMode, BoxiqTheme> = {
   light: {
     mode: "light",
     colors: {
-      background: "#F5F0E8",
-      card: "#FFFDF8",
-      cardStrong: "#ECE5DA",
-      text: "#151A16",
-      muted: "#766F66",
-      border: "#DDD3C5",
-      accent: "#214F3B",
-      accentSoft: "#DDE9DF",
-      danger: "#A5483D",
-      shadow: "#151A16",
-      fixedCell: "#E6DED1",
-      emptyDot: "#B8AA98"
+      background: "#F6F0E6",
+      card: "#FFFCF5",
+      cardStrong: "#E9DFD0",
+      text: "#111713",
+      muted: "#756F66",
+      border: "#D8CDBD",
+      accent: "#1F5A42",
+      accentSoft: "#DCE9DF",
+      danger: "#B54A3E",
+      shadow: "#111713",
+      fixedCell: "#E4DACB",
+      emptyDot: "#CFC5B6"
     }
   },
   dark: {
     mode: "dark",
     colors: {
-      background: "#07111F",
-      card: "#101C2D",
-      cardStrong: "#17263A",
-      text: "#F6FAFF",
-      muted: "#94A7BC",
-      border: "#22344D",
-      accent: "#61D7F2",
-      accentSoft: "#123648",
-      danger: "#FF8A7A",
-      shadow: "#000000",
-      fixedCell: "#1D3048",
-      emptyDot: "#526780"
+      background: "#111713",
+      card: "#18221B",
+      cardStrong: "#222E25",
+      text: "#FFFDF8",
+      muted: "#A79E92",
+      border: "#334237",
+      accent: "#52AC88",
+      accentSoft: "#214335",
+      danger: "#E0695B",
+      shadow: "#070A08",
+      fixedCell: "#2A382F",
+      emptyDot: "#495E50"
     }
   }
 };

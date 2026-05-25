@@ -1,4 +1,5 @@
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AchievementStrip } from "../src/components/AchievementStrip";
@@ -14,7 +15,13 @@ import { Typography } from "../src/theme/typography";
 
 export default function StatsScreen() {
   const { locale, theme } = useSettings();
-  const { levels, progress, dailyStats } = useBoxiqGame();
+  const { levels, progress, dailyStats, reloadProgress } = useBoxiqGame();
+
+  useFocusEffect(
+    useCallback(() => {
+      void reloadProgress();
+    }, [reloadProgress])
+  );
   const stats = buildStatsSummary(levels, progress, dailyStats, undefined, locale);
   const unlockedAchievements = getUnlockedAchievements(progress, dailyStats);
 

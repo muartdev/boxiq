@@ -1,5 +1,4 @@
-import { useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import type { CellValue } from "../game/types";
 import { useSettings } from "../hooks/useSettings";
@@ -26,36 +25,7 @@ export function BoxiqCell({
   onPress: () => void;
 }) {
   const { theme } = useSettings();
-  const scale = useRef(new Animated.Value(1)).current;
-  const pulse = useRef(new Animated.Value(0)).current;
   const circleSize = size * 0.48;
-
-  useEffect(() => {
-    Animated.sequence([
-      Animated.spring(scale, {
-        toValue: value === 0 ? 0.96 : 1.08,
-        useNativeDriver: true,
-        friction: 5
-      }),
-      Animated.spring(scale, {
-        toValue: 1,
-        useNativeDriver: true,
-        friction: 6
-      })
-    ]).start();
-  }, [scale, value]);
-
-  useEffect(() => {
-    if (!hinted) {
-      pulse.setValue(0);
-      return;
-    }
-
-    Animated.sequence([
-      Animated.timing(pulse, { toValue: 1, duration: 180, useNativeDriver: false }),
-      Animated.timing(pulse, { toValue: 0, duration: 600, useNativeDriver: false })
-    ]).start();
-  }, [hinted, pulse]);
 
   return (
     <Pressable
@@ -70,27 +40,25 @@ export function BoxiqCell({
           height: size,
           left,
           top,
-          borderColor: invalid ? theme.colors.danger : hinted || active ? theme.colors.accent : theme.colors.border,
+          borderColor: invalid
+            ? theme.colors.danger
+            : hinted || active
+              ? theme.colors.accent
+              : theme.colors.border,
           backgroundColor: fixed
             ? theme.colors.fixedCell
             : invalid
               ? theme.mode === "dark"
                 ? "#341A23"
                 : "#F5E4E1"
-              : active
+              : hinted || active
                 ? theme.colors.accentSoft
                 : theme.colors.card,
           opacity: pressed ? 0.72 : 1
         }
       ]}
     >
-      <Animated.View
-        style={{
-          transform: [
-            { scale: Animated.add(scale, pulse.interpolate({ inputRange: [0, 1], outputRange: [0, 0.08] })) }
-          ]
-        }}
-      >
+      <View>
         {value === 0 ? (
           <View
             style={[
@@ -104,7 +72,7 @@ export function BoxiqCell({
             ]}
           />
         ) : (
-          <Animated.View
+          <View
             style={[
               styles.symbol,
               {
@@ -118,9 +86,9 @@ export function BoxiqCell({
             ]}
           >
             {value === 1 ? <View style={[styles.innerMark, { backgroundColor: theme.colors.card }]} /> : null}
-          </Animated.View>
+          </View>
         )}
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }

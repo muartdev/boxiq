@@ -1,4 +1,5 @@
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { AppShell } from "../src/components/AppShell";
@@ -47,7 +48,14 @@ const chapterDescriptions: Record<string, { en: string; tr: string }> = {
 export default function LevelsScreen() {
   const router = useRouter();
   const { locale, theme } = useSettings();
-  const { levels, selectedLevelId, progress, selectLevel, dailyLevelId, dailyStats } = useBoxiqGame();
+  const { levels, selectedLevelId, progress, selectLevel, dailyLevelId, dailyStats, reloadProgress } = useBoxiqGame();
+
+  useFocusEffect(
+    useCallback(() => {
+      void reloadProgress();
+    }, [reloadProgress])
+  );
+
   const groups = Array.from(new Set(levels.map((level) => level.chapter[locale])));
   const dailyLevel = levels.find((level) => level.id === dailyLevelId) ?? levels[0];
 

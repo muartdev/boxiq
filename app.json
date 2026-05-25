@@ -8,17 +8,24 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "backgroundColor": "#F5F0E8",
+    "icon": "./assets/icon.png",
     "splash": {
       "backgroundColor": "#F5F0E8"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.muartdev.boxiq",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F5F0E8"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.muartdev.boxiq"
     },
     "plugins": [
       "expo-router",
@@ -27,6 +34,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6a1f35a4-36ff-4811-b75d-f0c99b19027f"
+      }
     }
   }
 }

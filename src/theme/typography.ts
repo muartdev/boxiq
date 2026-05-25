@@ -1,11 +1,10 @@
 import type { TextStyle } from "react-native";
 
 export const FontFamilies = {
-  brandBold: "Sora_700Bold",
-  brandStrong: "Sora_800ExtraBold",
-  body: "Inter_500Medium",
-  bodyStrong: "Inter_600SemiBold",
-  bodyHeavy: "Inter_800ExtraBold"
+  headingBold: "SpaceGrotesk_700Bold",
+  bodyMedium: "Manrope_500Medium",
+  bodySemiBold: "Manrope_600SemiBold",
+  bodyBold: "Manrope_700Bold"
 } as const;
 
 function makeTextStyle(
@@ -24,18 +23,19 @@ function makeTextStyle(
 }
 
 export const Typography = {
-  brandLabel: makeTextStyle(FontFamilies.brandStrong, 13, 16, { textTransform: "uppercase" }),
-  screenTitle: makeTextStyle(FontFamilies.brandStrong, 43, 46),
-  gameTitle: makeTextStyle(FontFamilies.brandStrong, 45, 48),
-  levelTitle: makeTextStyle(FontFamilies.brandStrong, 26, 30),
-  sectionTitle: makeTextStyle(FontFamilies.brandBold, 18, 22),
-  cardTitle: makeTextStyle(FontFamilies.brandBold, 24, 28),
-  buttonText: makeTextStyle(FontFamilies.brandBold, 20, 24),
-  timerText: makeTextStyle(FontFamilies.brandStrong, 32, 34),
-  statBig: makeTextStyle(FontFamilies.brandStrong, 47, 50),
-  body: makeTextStyle(FontFamilies.body, 17, 24),
-  bodyLarge: makeTextStyle(FontFamilies.body, 19, 26),
-  bodyStrong: makeTextStyle(FontFamilies.bodyStrong, 17, 24),
-  muted: makeTextStyle(FontFamilies.body, 15, 20),
-  tabLabel: makeTextStyle(FontFamilies.bodyHeavy, 14, 16)
+  brandLabel: makeTextStyle(FontFamilies.headingBold, 12, 15, { textTransform: "uppercase", letterSpacing: 0.5 }),
+  screenTitle: makeTextStyle(FontFamilies.headingBold, 38, 42),
+  gameTitle: makeTextStyle(FontFamilies.headingBold, 36, 40),
+  levelTitle: makeTextStyle(FontFamilies.headingBold, 22, 26),
+  sectionTitle: makeTextStyle(FontFamilies.headingBold, 15, 18, { textTransform: "uppercase", letterSpacing: 0.5 }),
+  cardTitle: makeTextStyle(FontFamilies.headingBold, 20, 24),
+  buttonText: makeTextStyle(FontFamilies.headingBold, 18, 22),
+  timerText: makeTextStyle(FontFamilies.headingBold, 30, 34),
+  statBig: makeTextStyle(FontFamilies.headingBold, 42, 46),
+  body: makeTextStyle(FontFamilies.bodyMedium, 16, 22),
+  bodyLarge: makeTextStyle(FontFamilies.bodyMedium, 17, 24),
+  bodyStrong: makeTextStyle(FontFamilies.bodySemiBold, 16, 22),
+  muted: makeTextStyle(FontFamilies.bodyMedium, 14, 18),
+  meta: makeTextStyle(FontFamilies.bodyMedium, 15, 20),
+  tabLabel: makeTextStyle(FontFamilies.bodyBold, 13, 16)
 } as const;

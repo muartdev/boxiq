@@ -35,12 +35,10 @@ export function ResultModal({
       scale: new Animated.Value(0.6)
     }))
   ).current;
-
-  if (!result) {
-    return null;
-  }
-
   useEffect(() => {
+    if (!result) {
+      return;
+    }
     setVisibleStars(0);
     summaryY.setValue(14);
     summaryOpacity.setValue(0);
@@ -98,6 +96,10 @@ export function ResultModal({
       starTimers.forEach((timer) => clearTimeout(timer));
     };
   }, [burst, result, summaryOpacity, summaryY]);
+
+  if (!result) {
+    return null;
+  }
 
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onClose}>

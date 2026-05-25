@@ -1,15 +1,15 @@
 import { Tabs } from "expo-router";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  Sora_700Bold,
-  Sora_800ExtraBold,
-} from "@expo-google-fonts/sora";
+  SpaceGrotesk_700Bold,
+} from "@expo-google-fonts/space-grotesk";
 import {
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_800ExtraBold,
-} from "@expo-google-fonts/inter";
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+} from "@expo-google-fonts/manrope";
 import * as SplashScreen from "expo-splash-screen";
 
 import { BoxiqGameProvider } from "../src/hooks/useBoxiqGame";
@@ -22,25 +22,48 @@ import {
   IstatistiklerIcon,
   AyarlarIcon,
 } from "../src/components/icons/TabIcons";
+import { getFloatingTabBarMetrics } from "../src/components/floatingTabBar";
 
 SplashScreen.preventAutoHideAsync();
 
 function ThemedTabs() {
   const { locale, theme } = useSettings();
+  const insets = useSafeAreaInsets();
+  const tabBarMetrics = getFloatingTabBarMetrics(insets.bottom);
 
   return (
     <BoxiqGameProvider>
       <Tabs
         screenOptions={{
           headerShown: false,
+          sceneStyle: {
+            backgroundColor: theme.colors.background
+          },
           tabBarActiveTintColor: theme.colors.accent,
           tabBarInactiveTintColor: theme.colors.muted,
           tabBarStyle: {
+            position: "absolute",
+            left: tabBarMetrics.left,
+            right: tabBarMetrics.right,
+            bottom: tabBarMetrics.bottom,
             backgroundColor: theme.colors.card,
-            borderTopColor: theme.colors.border,
-            height: 76,
-            paddingTop: 8,
-            paddingBottom: 18
+            borderColor: theme.colors.border,
+            borderWidth: 1,
+            height: tabBarMetrics.height,
+            paddingTop: tabBarMetrics.paddingTop,
+            paddingBottom: tabBarMetrics.paddingBottom,
+            borderRadius: tabBarMetrics.borderRadius,
+            shadowColor: theme.colors.shadow,
+            shadowOpacity: theme.mode === "dark" ? 0.22 : 0.1,
+            shadowRadius: 18,
+            shadowOffset: {
+              width: 0,
+              height: 8
+            },
+            elevation: 6
+          },
+          tabBarItemStyle: {
+            paddingTop: 1
           },
           tabBarLabelStyle: {
             ...Typography.tabLabel
@@ -82,11 +105,10 @@ function ThemedTabs() {
 
 function RootWithFonts() {
   const [fontsLoaded, fontError] = useFonts({
-    Sora_700Bold,
-    Sora_800ExtraBold,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_800ExtraBold,
+    SpaceGrotesk_700Bold,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
   });
 
   useEffect(() => {
