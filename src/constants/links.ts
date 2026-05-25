@@ -1,0 +1,3 @@
+export const PRIVACY_POLICY_URL = "BURAYA_PRIVACY_POLICY_URL";
+export const SUPPORT_URL = "BURAYA_SUPPORT_URL";
+export const APP_VERSION = "1.0.0";
