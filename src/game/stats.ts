@@ -1,4 +1,5 @@
 import { getDailyEntry } from "./retention";
+import { getLocalDateString } from "./dateUtils";
 import type { DailyStats, Level, Locale, ProgressMap, StatsSummary } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -9,7 +10,7 @@ function shiftDateKey(dateKey: string, offset: number): string {
 }
 
 function todayKeyFallback(): string {
-  return new Date().toISOString().slice(0, 10);
+  return getLocalDateString();
 }
 
 export function buildStatsSummary(

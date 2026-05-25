@@ -16,7 +16,8 @@ const keys = {
   currentLevel: "boxiq:current-level",
   progress: "boxiq:progress",
   gameSettings: "boxiq:game-settings",
-  dailyStats: "boxiq:daily-stats"
+  dailyStats: "boxiq:daily-stats",
+  progressDataV2: "boxiq:progress-data-v2"
 };
 
 export const defaultGameSettings: GameSettings = {
@@ -298,6 +299,7 @@ export async function resetProgress(): Promise<void> {
   await Promise.all([
     AsyncStorage.removeItem(keys.progress),
     AsyncStorage.removeItem(keys.dailyStats),
+    AsyncStorage.removeItem(keys.progressDataV2),
     AsyncStorage.removeItem(keys.currentLevel)
   ]);
 }

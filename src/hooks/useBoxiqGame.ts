@@ -14,8 +14,7 @@ import { canUndo, createSnapshot, popSnapshot, pushSnapshot } from "../game/hist
 import { buildSmartHint } from "../game/hints";
 import { cloneGrid, levels } from "../game/levels";
 import { findInstantConflicts } from "../game/live-feedback";
-import { applyDailyCompletion, getEarnedAchievements, pickDailyLevel, toDateKey } from "../game/retention";
-import { calculateStars } from "../game/scoring";
+import { getEarnedAchievements, pickDailyLevel } from "../game/retention";
 import type {
   AchievementId,
   CellValue,
@@ -26,19 +25,18 @@ import type {
   ProgressMap,
   ResultSummary
 } from "../game/types";
-import { solvedMessage, validateBoard } from "../game/validator";
+import { solvedMessage } from "../game/validator";
+import { validateBoard, calculateStars as calculateValidationStars } from "../game/validation";
 import { t } from "../i18n/translations";
 import {
-  getAllProgress,
   getCurrentLevel,
-  getDailyStats,
-  setBestStars,
-  setBestTime,
-  setCompleted,
   setCurrentLevel,
-  setDailyStats,
-  setLevelPerformance
 } from "../storage/progressStorage";
+import {
+  loadProgress as getProgressStoreData,
+  recordLevelCompleted,
+  recordLevelStarted,
+} from "../storage/progressStore";
 import {
   triggerErrorFeedback,
   triggerHintFeedback,
@@ -95,6 +93,37 @@ function findLevel(levelId?: string): Level {
   return levels.find((level) => level.id === levelId) ?? levels[0];
 }
 
+function mapProgressFromStore(data: Awaited<ReturnType<typeof getProgressStoreData>>): ProgressMap {
+  const nextProgress: ProgressMap = {};
+
+  Object.entries(data.levels).forEach(([levelId, levelProgress]) => {
+    nextProgress[levelId] = {
+      completed: levelProgress.completed,
+      bestTime: levelProgress.bestTimeSeconds ?? undefined,
+      bestStars: levelProgress.bestStars,
+      bestMistakes: levelProgress.bestMistakes ?? undefined,
+      bestHintsUsed: levelProgress.bestUsedHints ?? undefined
+    };
+  });
+
+  return nextProgress;
+}
+
+function mapDailyStatsFromStore(data: Awaited<ReturnType<typeof getProgressStoreData>>): DailyStats {
+  const dailyBestTime =
+    data.daily.dailyHistory.length > 0
+      ? Math.min(...data.daily.dailyHistory.map((entry) => entry.seconds))
+      : undefined;
+
+  return {
+    lastDailyCompletedDate: data.daily.lastCompletedDailyDate || undefined,
+    currentStreak: data.daily.streak,
+    bestStreak: data.daily.bestStreak,
+    dailyBestTime,
+    dailyHistory: data.daily.dailyHistory
+  };
+}
+
 export function BoxiqGameProvider({ children }: { children: ReactNode }) {
   const { gameSettings, locale } = useSettings();
   const [selectedLevelId, setSelectedLevelId] = useState(levels[0].id);
@@ -118,17 +147,16 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
   const [resultSummary, setResultSummary] = useState<ResultSummary | undefined>();
 
   const fixedCells = useMemo(() => fixedFromGrid(selectedLevel.grid), [selectedLevel]);
-  const stars = calculateStars(mistakes, hintsUsed);
+  const stars = calculateValidationStars({ mistakes, usedHints: hintsUsed });
   const selectedProgress = progress[selectedLevel.id] ?? {};
-  const todayKey = useMemo(() => toDateKey(new Date()), []);
   const dailyLevelId = useMemo(() => pickDailyLevel(levels.map((level) => level.id), new Date()), []);
   const mistakeLimit =
     gameSettings.mistakeLimit === "relaxed" ? undefined : gameSettings.mistakeLimit === "normal" ? 3 : 1;
 
   const loadProgress = useCallback(async () => {
-    const [storedProgress, storedDailyStats] = await Promise.all([getAllProgress(), getDailyStats()]);
-    setProgress(storedProgress);
-    setDailyStatsState(storedDailyStats);
+    const data = await getProgressStoreData();
+    setProgress(mapProgressFromStore(data));
+    setDailyStatsState(mapDailyStatsFromStore(data));
   }, []);
 
   const loadLevel = useCallback(
@@ -152,19 +180,19 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     async function bootstrap() {
-      const [storedLevelId, storedProgress, storedDailyStats] = await Promise.all([
-        getCurrentLevel(),
-        getAllProgress(),
-        getDailyStats()
-      ]);
+      const storedLevelId = await getCurrentLevel();
+      const data = await getProgressStoreData();
       if (!active) {
         return;
       }
 
+      const legacyProgress = mapProgressFromStore(data);
+      const legacyDailyStats = mapDailyStatsFromStore(data);
+
       const nextLevel = findLevel(storedLevelId);
       setSelectedLevelId(nextLevel.id);
-      setProgress(storedProgress);
-      setDailyStatsState(storedDailyStats);
+      setProgress(legacyProgress);
+      setDailyStatsState(legacyDailyStats);
       loadLevel(nextLevel);
     }
 
@@ -199,6 +227,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       setSelectedLevelId(nextLevel.id);
       loadLevel(nextLevel);
       await setCurrentLevel(nextLevel.id);
+      await recordLevelStarted(nextLevel.id);
     },
     [loadLevel]
   );
@@ -343,11 +372,73 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const result = validateBoard(board, selectedLevel, locale, seconds);
-    setMessage(result.message);
-    setInvalidCells(new Set());
+    const result = validateBoard(board, selectedLevel.relations, locale);
+    if (!result.isComplete) {
+      let emptyRow = 0;
+      let emptyCol = 0;
+      let foundEmpty = false;
+      for (let r = 0; r < board.length; r++) {
+        for (let c = 0; c < board[r].length; c++) {
+          if (board[r][c] === 0) {
+            emptyRow = r;
+            emptyCol = c;
+            foundEmpty = true;
+            break;
+          }
+        }
+        if (foundEmpty) break;
+      }
+      const emptyMsg = locale === "tr"
+        ? `Satır ${emptyRow + 1}, sütun ${emptyCol + 1} hâlâ boş. Önce tüm kutuları doldur.`
+        : `Row ${emptyRow + 1}, column ${emptyCol + 1} is still empty. Fill every box first.`;
+      
+      setMessage(emptyMsg);
+      return;
+    }
 
-    if (!result.valid) {
+    if (!result.isValid) {
+      const firstMistake = result.mistakes[0];
+      setMessage(firstMistake.message);
+      
+      const invalidSet = new Set<HintCell>();
+      if (firstMistake.row !== undefined && firstMistake.col !== undefined) {
+        invalidSet.add(`${firstMistake.row}-${firstMistake.col}`);
+      } else if (firstMistake.index !== undefined) {
+        if (firstMistake.axis === "row") {
+          for (let c = 0; c < 6; c++) invalidSet.add(`${firstMistake.index}-${c}`);
+        } else if (firstMistake.axis === "column") {
+          for (let r = 0; r < 6; r++) invalidSet.add(`${r}-${firstMistake.index}`);
+        }
+      }
+      setInvalidCells(invalidSet);
+
+      const nextMistakes = mistakes + 1;
+      if (mistakeLimit !== undefined && nextMistakes >= mistakeLimit) {
+        loadLevel(selectedLevel, t(locale, "mistakeLimitReached"));
+      } else {
+        setMistakes(nextMistakes);
+      }
+      void triggerErrorFeedback(gameSettings.hapticsEnabled);
+      return;
+    }
+
+    // Validate matching the intended solution
+    let matchesSolution = true;
+    for (let r = 0; r < board.length; r++) {
+      for (let c = 0; c < board[r].length; c++) {
+        if (board[r][c] !== selectedLevel.solution[r][c]) {
+          matchesSolution = false;
+          break;
+        }
+      }
+      if (!matchesSolution) break;
+    }
+
+    if (!matchesSolution) {
+      const solutionMsg = locale === "tr"
+        ? "Kurallar doğru görünüyor ama çözüm hedef kutuyla eşleşmiyor."
+        : "The rules look right, but this is not the intended Boxiq solution.";
+      setMessage(solutionMsg);
       const nextMistakes = mistakes + 1;
       if (mistakeLimit !== undefined && nextMistakes >= mistakeLimit) {
         loadLevel(selectedLevel, t(locale, "mistakeLimitReached"));
@@ -359,33 +450,26 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     }
 
     setSolved(true);
-    const finalStars = calculateStars(mistakes, hintsUsed);
+    const finalStars = calculateValidationStars({ mistakes, usedHints: hintsUsed });
     const isNewBestTime =
       selectedProgress.bestTime === undefined || seconds < selectedProgress.bestTime;
-    const levelPerformance = {
+
+    await recordLevelCompleted({
+      levelId: selectedLevel.id,
+      elapsedSeconds: seconds,
       mistakes,
-      hintsUsed
-    };
-    let nextDailyStats = dailyStats;
+      usedHints: hintsUsed,
+      stars: finalStars,
+      isDaily: selectedLevel.id === dailyLevelId
+    });
 
-    if (selectedLevel.id === dailyLevelId) {
-      nextDailyStats = applyDailyCompletion(dailyStats, {
-        date: todayKey,
-        levelId: selectedLevel.id,
-        seconds,
-        mistakes,
-        hintsUsed,
-        stars: finalStars
-      });
-    }
+    const data = await getProgressStoreData();
+    const legacyProgress = mapProgressFromStore(data);
+    setProgress(legacyProgress);
 
-    await Promise.all([
-      setCompleted(selectedLevel.id, true),
-      setBestTime(selectedLevel.id, seconds),
-      setBestStars(selectedLevel.id, finalStars),
-      setLevelPerformance(selectedLevel.id, levelPerformance),
-      selectedLevel.id === dailyLevelId ? setDailyStats(nextDailyStats) : Promise.resolve()
-    ]);
+    const legacyDailyStats = mapDailyStatsFromStore(data);
+    setDailyStatsState(legacyDailyStats);
+
     setResultSummary({
       levelId: selectedLevel.id,
       levelName: selectedLevel.names[locale],
@@ -395,29 +479,21 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
       stars: finalStars,
       isNewBestTime,
       isDaily: selectedLevel.id === dailyLevelId,
-      dailyStreak:
-        selectedLevel.id === dailyLevelId ? nextDailyStats.currentStreak : dailyStats.currentStreak
+      dailyStreak: legacyDailyStats.currentStreak
     });
 
-    const refreshedProgress = await getAllProgress();
-    setProgress(refreshedProgress);
-    if (selectedLevel.id === dailyLevelId) {
-      setDailyStatsState(nextDailyStats);
-    }
-
     setAchievements(
-      getEarnedAchievements(refreshedProgress, {
+      getEarnedAchievements(legacyProgress, {
         mistakes,
         hintsUsed,
         seconds,
-        streak: nextDailyStats.currentStreak
+        streak: legacyDailyStats.currentStreak
       })
     );
 
     void triggerSuccessFeedback(gameSettings.hapticsEnabled);
   }, [
     board,
-    dailyStats,
     dailyLevelId,
     gameSettings.hapticsEnabled,
     hintsUsed,
@@ -428,8 +504,7 @@ export function BoxiqGameProvider({ children }: { children: ReactNode }) {
     seconds,
     selectedLevel,
     selectedProgress.bestTime,
-    solved,
-    todayKey
+    solved
   ]);
 
   const value = useMemo<GameContextValue>(

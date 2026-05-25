@@ -1,4 +1,5 @@
 import type { AchievementId, DailyHistoryEntry, DailyStats, LevelProgress } from "./types";
+import { getLocalDateString } from "./dateUtils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -10,7 +11,7 @@ export type SolveQuality = {
 };
 
 export function toDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return getLocalDateString(date);
 }
 
 function dayIndex(dateKey: string): number {

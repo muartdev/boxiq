@@ -134,7 +134,8 @@ type TranslationKey =
   | "support"
   | "aboutBody"
   | "resetProgressBody"
-  | "open";
+  | "open"
+  | "linkUnavailable";
 
 export const translations: Record<Locale, Record<TranslationKey, string>> = {
   en: {
@@ -272,7 +273,8 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     support: "Support",
     aboutBody: "Made for calm daily logic practice.",
     resetProgressBody: "Completed levels, stars, and statistics will be deleted. Your settings stay.",
-    open: "Open"
+    open: "Open",
+    linkUnavailable: "This link is not configured yet."
   },
   tr: {
     play: "Oyna",
@@ -409,7 +411,8 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     support: "Destek",
     aboutBody: "Günlük sakin mantık pratiği için tasarlandı.",
     resetProgressBody: "Tamamlanan seviyeler, yıldızlar ve istatistikler silinir. Ayarların korunur.",
-    open: "Aç"
+    open: "Aç",
+    linkUnavailable: "Bu bağlantı henüz ayarlanmadı."
   }
 };
 

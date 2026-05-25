@@ -12,7 +12,7 @@ import type { Locale, MistakeLimitMode, ThemeMode } from "../src/game/types";
 import { useBoxiqGame } from "../src/hooks/useBoxiqGame";
 import { useSettings } from "../src/hooks/useSettings";
 import { t } from "../src/i18n/translations";
-import { resetProgress } from "../src/storage/progressStorage";
+import { resetProgress } from "../src/storage/progressStore";
 import { Typography } from "../src/theme/typography";
 
 export default function SettingsScreen() {
@@ -26,7 +26,7 @@ export default function SettingsScreen() {
     updateGameSettings,
     showTutorial
   } = useSettings();
-  const { reloadProgress } = useBoxiqGame();
+  const { reloadProgress, replayLevel } = useBoxiqGame();
 
   function confirmReset() {
     Alert.alert(t(locale, "resetProgress"), t(locale, "resetProgressBody"), [
@@ -37,6 +37,7 @@ export default function SettingsScreen() {
         onPress: () => {
           void resetProgress().then(async () => {
             await reloadProgress();
+            replayLevel();
           });
         }
       }
@@ -44,6 +45,11 @@ export default function SettingsScreen() {
   }
 
   function openLink(url: string) {
+    if (!/^https?:\/\//.test(url)) {
+      Alert.alert(t(locale, "about"), t(locale, "linkUnavailable"));
+      return;
+    }
+
     void Linking.openURL(url);
   }
 
