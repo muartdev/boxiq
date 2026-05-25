@@ -60,6 +60,12 @@ type TranslationKey =
   | "start"
   | "watchTutorial"
   | "firstGuide"
+  | "localPlay"
+  | "noAccountPlay"
+  | "localProgressSaved"
+  | "dailyPuzzle"
+  | "statsTracked"
+  | "privacySupportReady"
   | "filledCell"
   | "hollowCell"
   | "sameClue"
@@ -192,6 +198,12 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     start: "Start",
     watchTutorial: "View tutorial",
     firstGuide: "First level guide",
+    localPlay: "Local play",
+    noAccountPlay: "Play without an account",
+    localProgressSaved: "Progress is saved on this device.",
+    dailyPuzzle: "A fresh daily puzzle is always ready.",
+    statsTracked: "Stats and streaks stay local for now.",
+    privacySupportReady: "Privacy policy and support are ready in Settings.",
     filledCell: "Filled cell",
     hollowCell: "Hollow cell",
     sameClue: "Must match",
@@ -323,6 +335,12 @@ export const translations: Record<Locale, Record<TranslationKey, string>> = {
     start: "Başla",
     watchTutorial: "Tutorial'ı aç",
     firstGuide: "İlk seviye rehberi",
+    localPlay: "Yerel oyun",
+    noAccountPlay: "Hesapsız oyna",
+    localProgressSaved: "İlerleme bu cihazda kaydedilir.",
+    dailyPuzzle: "Her gün yeni günlük bulmaca hazırdır.",
+    statsTracked: "İstatistikler ve seriler şimdilik yerelde kalır.",
+    privacySupportReady: "Gizlilik ve destek bağlantıları Ayarlar'da hazır.",
     filledCell: "Dolu hücre",
     hollowCell: "Boş halka",
     sameClue: "Aynı olmalı",

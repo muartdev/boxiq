@@ -10,6 +10,7 @@ import { CompactStatusBar } from "../src/components/CompactStatusBar";
 import { DailyCard } from "../src/components/DailyCard";
 import { HowToPlay } from "../src/components/HowToPlay";
 import { InlineCoach } from "../src/components/InlineCoach";
+import { LocalPlayCard } from "../src/components/LocalPlayCard";
 import { PrimaryButton } from "../src/components/PrimaryButton";
 import { ResultModal } from "../src/components/ResultModal";
 import { SecondaryButton } from "../src/components/SecondaryButton";
@@ -215,6 +216,8 @@ export default function PlayScreen() {
         compact
         onPress={() => void selectLevel(dailyLevelId)}
       />
+
+      <LocalPlayCard compact />
 
       <HowToPlay />
 

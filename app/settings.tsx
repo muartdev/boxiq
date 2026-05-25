@@ -1,6 +1,7 @@
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AppShell } from "../src/components/AppShell";
+import { LocalPlayCard } from "../src/components/LocalPlayCard";
 import { SectionHeader } from "../src/components/SectionHeader";
 import { SegmentedControl } from "../src/components/SegmentedControl";
 import { SecondaryButton } from "../src/components/SecondaryButton";
@@ -136,6 +137,7 @@ export default function SettingsScreen() {
 
       <View style={[styles.section, { borderTopColor: theme.colors.border }]}>
         <SectionHeader title={t(locale, "data")} />
+        <LocalPlayCard />
         <View style={styles.row}>
           <SecondaryButton label={t(locale, "watchTutorial")} onPress={showTutorial} />
         </View>
